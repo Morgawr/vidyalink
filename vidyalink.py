@@ -74,7 +74,6 @@ class VidyaBot(irc.bot.SingleServerIRCBot):
             counter = counter+1
         return str(sz)+exts[counter]
 
-
     def report_contents(self, headers):
         content_type = headers['content-type']
         if 'content-length' in headers:
@@ -116,8 +115,12 @@ class VidyaBot(irc.bot.SingleServerIRCBot):
     def parse_url(self, e, msg):
         for url in  URL_RE.findall(msg):
             stat = self.echo_url_stats(url[0])
+            print stat
             if stat is not None:
-                self.connection.privmsg(e.target, stat)
+                stat = stat.replace("\n", "")
+                stat = stat.replace("\r", "")
+                stat = stat.replace("\t", " ")
+                self.connection.privmsg(e.target, stat.strip())
 
     def do_command(self, e, cmd):
         nick = e.source.nick
