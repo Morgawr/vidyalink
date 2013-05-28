@@ -87,11 +87,15 @@ class VidyaBot(irc.bot.SingleServerIRCBot):
 
 
     def echo_url_stats(self, url):
-        resp = requests.head(url)
+        try:
+            resp = requests.head(url)
+        except requests.exceptions.ConnectionError as e:
+            sys.stderr.write(e.strerror)
+            return None
         if resp.status_code != requests.codes.ok:
             return None
         if "text/html" not in resp.headers["content-type"]:
-            return self.report_contents(resp.headers)
+            return url + " -> " + self.report_contents(resp.headers)
         else:
             return self.find_title(url)
 
