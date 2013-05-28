@@ -5,6 +5,7 @@ import irc.bot
 import irc.strings
 import re
 import urllib
+import urlparse
 import requests
 from BeautifulSoup import BeautifulSoup
 import HTMLParser
@@ -28,7 +29,7 @@ def sint(string):
 class VidyaBot(irc.bot.SingleServerIRCBot):
     muted = False
     owners = []
-    filters = []
+    name_filters = []
 
     def __init__(self, channels, nickname, server, port=6667, owners=[],
                  filters=[]):
@@ -36,7 +37,7 @@ class VidyaBot(irc.bot.SingleServerIRCBot):
                                             nickname, nickname)
         self.joined_channels = channels
         self.owners = owners
-        self.filters = filters
+        self.name_filters = filters
 
     def on_nicknameinuse(self, c, e):
         c.nick(c.get_nickname() + "_")
@@ -49,7 +50,7 @@ class VidyaBot(irc.bot.SingleServerIRCBot):
         self.do_command(e, e.arguments[0])
 
     def on_pubmsg(self, c, e):
-        if e.source.nick in self.filters:
+        if e.source.nick in self.name_filters:
             return
         message = e.arguments[0].strip()
         if message == "":
@@ -86,24 +87,29 @@ class VidyaBot(irc.bot.SingleServerIRCBot):
     def find_title(self, url):
         resp = requests.get(url)
         if resp.status_code != requests.codes.ok:
+            sys.stderr.write(url + " gave status: " + str(resp.status_code))
             return None
         soup = BeautifulSoup(resp.text)
         obj_title = soup.html.head.title
         try:
-            title = HTMLParser.HTMLParser().unescape(obj_title.string)
-        except:
+            return HTMLParser.HTMLParser().unescape(obj_title.string)
+        except Exception as e:
+            sys.stderr.write(e.message)
             return None
-
 
     def echo_url_stats(self, url):
+        if urlparse.urlsplit(url)[0] == '':
+            url = "http://" + url
         try:
             resp = requests.head(url)
-        except requests.exceptions.ConnectionError:
+        except Exception as e:
+            sys.stderr.write(e.message)
             return None
         if resp.status_code != requests.codes.ok:
+            sys.stderr.write(url + " gave status: " + str(resp.status_code))
             return None
         if "text/html" not in resp.headers["content-type"]:
-            return url + " -> " + self.report_contents(resp.headers)
+            return self.report_contents(resp.headers) + " | " + url
         else:
             return self.find_title(url)
 
@@ -149,7 +155,7 @@ def main():
     server = "chat.freenode.net"
     port = 6667
     channels = ["#vidyadev", "##agdg"]
-    filters = ["bro-bot-indev"]
+    filters = ["bro-bot-indev", "bro-bot", "AGDGBot"]
     owners = ["unaffiliated/morgawr", "unaffiliated/kuraitou"]
     bot = VidyaBot(channels, "VidyaLink", server, port, owners, filters)
     bot.start()
