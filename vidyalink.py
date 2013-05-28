@@ -28,12 +28,14 @@ def sint(string):
 class VidyaBot(irc.bot.SingleServerIRCBot):
     muted = False
     owners = []
+    filters = []
 
-    def __init__(self, owners, channels, nickname, server, port=6667):
+    def __init__(self, channels, nickname, server, port=6667, owners, filters):
         irc.bot.SingleServerIRCBot.__init__(self, [(server, port)],
                                             nickname, nickname)
         self.joined_channels = channels
         self.owners = owners
+        self.filters = filters
 
     def on_nicknameinuse(self, c, e):
         c.nick(c.get_nickname() + "_")
@@ -46,6 +48,8 @@ class VidyaBot(irc.bot.SingleServerIRCBot):
         self.do_command(e, e.arguments[0])
 
     def on_pubmsg(self, c, e):
+        if e.source.nick in self.filters:
+            return
         message = e.arguments[0].strip()
         if message == "":
             return
@@ -83,8 +87,11 @@ class VidyaBot(irc.bot.SingleServerIRCBot):
         if resp.status_code != requests.codes.ok:
             return None
         soup = BeautifulSoup(resp.text)
-        title = HTMLParser.HTMLParser().unescape(soup.html.head.title.string)
-        return title
+        obj_title = soup.html.head.title
+        try:
+            title = HTMLParser.HTMLParser().unescape(obj_title.string)
+        except:
+            return None
 
 
     def echo_url_stats(self, url):
@@ -141,8 +148,9 @@ def main():
     server = "chat.freenode.net"
     port = 6667
     channels = ["#vidyadev", "##agdg"]
+    filters = ["bro-bot-indev"]
     owners = ["unaffiliated/morgawr", "unaffiliated/kuraitou"]
-    bot = VidyaBot(owners, channels, "VidyaLink", server, port)
+    bot = VidyaBot(channels, "VidyaLink", server, port, owners, filters)
     bot.start()
 
 if __name__ == "__main__":
