@@ -93,7 +93,11 @@ class VidyaBot(irc.bot.SingleServerIRCBot):
         return color_str(result, 3)
 
     def find_title(self, url):
-        resp = requests.get(url)
+        try:
+            resp = requests.get(url,timeout=0.5,stream=True)
+        except Exception as e:
+            log(str(e.message), 2)
+            return None
         if resp.status_code != requests.codes.ok:
             log(url+" -> "+str(resp.status_code), 2)
             return None
