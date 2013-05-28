@@ -130,7 +130,7 @@ class VidyaBot(irc.bot.SingleServerIRCBot):
                 stat = stat.replace("\n", "")
                 stat = stat.replace("\r", "")
                 stat = stat.replace("\t", " ")
-                self.connection.privmsg(e.target, stat.strip())
+                self.connection.privmsg(e.target, stat.strip()[:400])
 
     def do_command(self, e, cmd):
         nick = e.source.nick
@@ -168,7 +168,7 @@ def main():
     server = "chat.freenode.net"
     port = 6667
     channels = ["#vidyadev", "##agdg"]
-    filters = ["bro-bot-indev", "bro-bot", "AGDGBot"]
+    filters = ["bro-bot-indev", "bro-bot", "AGDGBot", "Clobot"]
     owners = ["unaffiliated/morgawr", "unaffiliated/kuraitou"]
     bot = VidyaBot(channels, "VidyaLink", server, port, owners, filters)
     bot.start()
