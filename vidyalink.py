@@ -91,7 +91,7 @@ class VidyaBot(irc.bot.SingleServerIRCBot):
         try:
             resp = requests.head(url)
         except requests.exceptions.ConnectionError as e:
-            sys.stderr.write(e.strerror)
+            sys.stderr.write(e.message)
             return None
         if resp.status_code != requests.codes.ok:
             return None
