@@ -8,6 +8,7 @@ import urllib
 import urlparse
 import requests
 from BeautifulSoup import BeautifulSoup
+from cStringIO import StringIO
 import HTMLParser
 
 URL_RE = re.compile(ur'(?i)\b((?:https?://|www\d{0,3}[.]|[a-z0-9.\-]+[.][a-z]{2,4}/)(?:[^\s()<>]+|\(([^\s()<>]+|(\([^\s()<>]+\)))*\))+(?:\(([^\s()<>]+|(\([^\s()<>]+\)))*\)|[^\s`!()\[\]{};:\'".,<>?\xab\xbb\u201c\u201d\u2018\u2019]))')
@@ -92,16 +93,28 @@ class VidyaBot(irc.bot.SingleServerIRCBot):
             result = "Type: " + content_type
         return color_str(result, 3)
 
+    def load_max_resp(self, resp, size=4096):
+        it = resp.iter_content()
+        file_str = StringIO()
+        for i in xrange(size):
+            try:
+                file_str.write(it.next())
+            except StopIteration:
+                break
+        return file_str.getvalue()
+
     def find_title(self, url):
         try:
-            resp = requests.get(url,timeout=0.5,stream=True)
+            resp = requests.get(url,stream=True)
         except Exception as e:
             log(str(e.message), 2)
             return None
         if resp.status_code != requests.codes.ok:
             log(url+" -> "+str(resp.status_code), 2)
             return None
-        soup = BeautifulSoup(resp.text)
+
+        text = self.load_max_resp(resp)
+        soup = BeautifulSoup(text)
         try:
             title = soup("title",limit=1)
             if title == []:
