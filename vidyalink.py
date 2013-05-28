@@ -30,7 +30,8 @@ class VidyaBot(irc.bot.SingleServerIRCBot):
     owners = []
     filters = []
 
-    def __init__(self, channels, nickname, server, port=6667, owners, filters):
+    def __init__(self, channels, nickname, server, port=6667, owners=[],
+                 filters=[]):
         irc.bot.SingleServerIRCBot.__init__(self, [(server, port)],
                                             nickname, nickname)
         self.joined_channels = channels
