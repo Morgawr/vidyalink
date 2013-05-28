@@ -1,5 +1,6 @@
 #! /usr/bin/env python
 
+import sys
 import irc.bot
 import irc.strings
 import re
