@@ -94,7 +94,7 @@ class VidyaBot(irc.bot.SingleServerIRCBot):
         try:
             return HTMLParser.HTMLParser().unescape(obj_title.string)
         except Exception as e:
-            sys.stderr.write(e.message)
+            sys.stderr.write(str(e.message))
             return None
 
     def echo_url_stats(self, url):
@@ -103,7 +103,7 @@ class VidyaBot(irc.bot.SingleServerIRCBot):
         try:
             resp = requests.head(url)
         except Exception as e:
-            sys.stderr.write(e.message)
+            sys.stderr.write(str(e.message))
             return None
         if resp.status_code != requests.codes.ok:
             sys.stderr.write(url + " gave status: " + str(resp.status_code))
