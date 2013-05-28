@@ -26,6 +26,15 @@ def sint(string):
     except ValueError:
         return None
 
+def log(message, stream):
+    try:
+        if stream == 1:
+            sys.stdout.write(message)
+        elif stream == 2:
+            sys.stderr.write(message)
+    except:
+        return
+
 class VidyaBot(irc.bot.SingleServerIRCBot):
     muted = False
     owners = []
@@ -86,14 +95,14 @@ class VidyaBot(irc.bot.SingleServerIRCBot):
     def find_title(self, url):
         resp = requests.get(url)
         if resp.status_code != requests.codes.ok:
-            sys.stderr.write(url + " gave status: " + str(resp.status_code))
+            log(url+" -> "+str(resp.status_code), 2)
             return None
         soup = BeautifulSoup(resp.text)
         obj_title = soup.html.head.title
         try:
             return HTMLParser.HTMLParser().unescape(obj_title.string)
         except Exception as e:
-            sys.stderr.write(str(e.message))
+            log(str(e.message), 2)
             return None
 
     def echo_url_stats(self, url):
@@ -102,10 +111,10 @@ class VidyaBot(irc.bot.SingleServerIRCBot):
         try:
             resp = requests.head(url)
         except Exception as e:
-            sys.stderr.write(str(e.message))
+            log(str(e.message), 2)
             return None
         if resp.status_code != requests.codes.ok:
-            sys.stderr.write(url + " gave status: " + str(resp.status_code))
+            log(url+" -> "+str(resp.status_code), 2)
             return None
         if "text/html" not in resp.headers["content-type"]:
             return self.report_contents(resp.headers) + " | " + url
@@ -115,7 +124,6 @@ class VidyaBot(irc.bot.SingleServerIRCBot):
     def parse_url(self, e, msg):
         for url in  URL_RE.findall(msg):
             stat = self.echo_url_stats(url[0])
-            print stat
             if stat is not None:
                 stat = stat.replace("\n", "")
                 stat = stat.replace("\r", "")
@@ -157,7 +165,8 @@ class VidyaBot(irc.bot.SingleServerIRCBot):
 def main():
     server = "chat.freenode.net"
     port = 6667
-    channels = ["#vidyadev", "##agdg"]
+    #channels = ["#vidyadev", "##agdg"]
+    channels = ["#testingchannelahaha"]
     filters = ["bro-bot-indev", "bro-bot", "AGDGBot"]
     owners = ["unaffiliated/morgawr", "unaffiliated/kuraitou"]
     bot = VidyaBot(channels, "VidyaLink", server, port, owners, filters)
