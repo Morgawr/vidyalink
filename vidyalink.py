@@ -72,9 +72,10 @@ class VidyaBot(irc.bot.SingleServerIRCBot):
         content_type = headers['content-type']
         if 'content-length' in headers:
             size = self.calculate_size(headers['content-length'])
-            return "Type: " + content_type + " | Size: " + size
+            result = "Type: " + content_type + " | Size: " + size
         else:
-            return "Type: " + content_type
+            result = "Type: " + content_type
+        return color_str(result, 3)
 
     def find_title(self, url):
         resp = requests.get(url)
