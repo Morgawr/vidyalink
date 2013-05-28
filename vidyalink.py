@@ -90,8 +90,7 @@ class VidyaBot(irc.bot.SingleServerIRCBot):
     def echo_url_stats(self, url):
         try:
             resp = requests.head(url)
-        except requests.exceptions.ConnectionError as e:
-            sys.stderr.write(e.message)
+        except requests.exceptions.ConnectionError:
             return None
         if resp.status_code != requests.codes.ok:
             return None
