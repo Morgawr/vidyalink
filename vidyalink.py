@@ -98,9 +98,11 @@ class VidyaBot(irc.bot.SingleServerIRCBot):
             log(url+" -> "+str(resp.status_code), 2)
             return None
         soup = BeautifulSoup(resp.text)
-        obj_title = soup.html.head.title
         try:
-            return HTMLParser.HTMLParser().unescape(obj_title.string)
+            title = soup("title",limit=1)
+            if title == []:
+                return None
+            return HTMLParser.HTMLParser().unescape(title[0].string)
         except Exception as e:
             log(str(e.message), 2)
             return None
