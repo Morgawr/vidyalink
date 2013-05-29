@@ -5,6 +5,7 @@ import irc.bot
 import irc.strings
 import re
 import urllib
+import urllib2
 import urlparse
 import requests
 from BeautifulSoup import BeautifulSoup
@@ -105,15 +106,19 @@ class VidyaBot(irc.bot.SingleServerIRCBot):
 
     def find_title(self, url):
         try:
-            resp = requests.get(url,stream=True)
+            #resp = requests.get(url,stream=True)
+            req = urllib2.Request(url)
+            req.headers['Range'] = 'bytes=0-8128'
+            f = urllib2.urlopen(req)
         except Exception as e:
             log(str(e.message), 2)
             return None
-        if resp.status_code != requests.codes.ok:
-            log(url+" -> "+str(resp.status_code), 2)
-            return None
+        #if resp.status_code != requests.codes.ok:
+        #    log(url+" -> "+str(resp.status_code), 2)
+        #    return None
 
-        text = self.load_max_resp(resp)
+        #text = self.load_max_resp(resp)
+        text = f.read()
         soup = BeautifulSoup(text)
         try:
             title = soup("title",limit=1)
@@ -136,7 +141,7 @@ class VidyaBot(irc.bot.SingleServerIRCBot):
             log(url+" -> "+str(resp.status_code), 2)
             return None
         if "text/html" not in resp.headers["content-type"]:
-            return self.report_contents(resp.headers) + " | " + url
+            return self.report_contents(resp.headers)
         else:
             return self.find_title(url)
 
