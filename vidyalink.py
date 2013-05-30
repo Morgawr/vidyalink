@@ -190,8 +190,7 @@ class VidyaBot(irc.bot.SingleServerIRCBot):
 def main():
     server = "chat.freenode.net"
     port = 6667
-    #channels = ["#vidyadev", "##agdg"]
-    channels = ["#hahatesting"]
+    channels = ["#vidyadev", "##agdg"]
     filters = ["bro-bot-indev", "bro-bot", "AGDGBot", "Clobot"]
     owners = ["unaffiliated/morgawr", "unaffiliated/kuraitou"]
     bot = VidyaBot(channels, "VidyaLink", server, port, owners, filters)
