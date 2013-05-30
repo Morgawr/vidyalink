@@ -11,6 +11,7 @@ import requests
 from BeautifulSoup import BeautifulSoup
 from cStringIO import StringIO
 import HTMLParser
+import threading
 
 URL_RE = re.compile(ur'(?i)\b((?:https?://|www\d{0,3}[.]|[a-z0-9.\-]+[.][a-z]{2,4}/)(?:[^\s()<>]+|\(([^\s()<>]+|(\([^\s()<>]+\)))*\))+(?:\(([^\s()<>]+|(\([^\s()<>]+\)))*\)|[^\s`!()\[\]{};:\'".,<>?\xab\xbb\u201c\u201d\u2018\u2019]))')
 
@@ -106,19 +107,13 @@ class VidyaBot(irc.bot.SingleServerIRCBot):
 
     def find_title(self, url):
         try:
-            #resp = requests.get(url,stream=True)
             req = urllib2.Request(url)
             req.headers['Range'] = 'bytes=0-8128'
-            f = urllib2.urlopen(req)
+            f = urllib2.urlopen(req,None,2)
+            text = f.read()
         except Exception as e:
             log(str(e.message), 2)
             return None
-        #if resp.status_code != requests.codes.ok:
-        #    log(url+" -> "+str(resp.status_code), 2)
-        #    return None
-
-        #text = self.load_max_resp(resp)
-        text = f.read()
         soup = BeautifulSoup(text)
         try:
             title = soup("title",limit=1)
@@ -130,6 +125,7 @@ class VidyaBot(irc.bot.SingleServerIRCBot):
             return None
 
     def echo_url_stats(self, url):
+        print url
         if urlparse.urlsplit(url)[0] == '':
             url = "http://" + url
         try:
@@ -145,14 +141,19 @@ class VidyaBot(irc.bot.SingleServerIRCBot):
         else:
             return self.find_title(url)
 
+    def __threaded_do_parse(self, e, url):
+        stat = self.echo_url_stats(url[0])
+        if stat is not None:
+            stat = stat.replace("\n","")
+            stat = stat.replace("\r", "")
+            stat = stat.replace("\t", " ")
+            self.connection.privmsg(e.target, stat.strip()[:80])
+
     def parse_url(self, e, msg):
         for url in  URL_RE.findall(msg):
-            stat = self.echo_url_stats(url[0])
-            if stat is not None:
-                stat = stat.replace("\n", "")
-                stat = stat.replace("\r", "")
-                stat = stat.replace("\t", " ")
-                self.connection.privmsg(e.target, stat.strip()[:400])
+            thread = threading.Thread(target=self.__threaded_do_parse, 
+                                      args=(e, url))
+            thread.start()
 
     def do_command(self, e, cmd):
         nick = e.source.nick
@@ -189,7 +190,8 @@ class VidyaBot(irc.bot.SingleServerIRCBot):
 def main():
     server = "chat.freenode.net"
     port = 6667
-    channels = ["#vidyadev", "##agdg"]
+    #channels = ["#vidyadev", "##agdg"]
+    channels = ["#hahatesting"]
     filters = ["bro-bot-indev", "bro-bot", "AGDGBot", "Clobot"]
     owners = ["unaffiliated/morgawr", "unaffiliated/kuraitou"]
     bot = VidyaBot(channels, "VidyaLink", server, port, owners, filters)
