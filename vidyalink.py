@@ -150,10 +150,14 @@ class VidyaBot(irc.bot.SingleServerIRCBot):
             self.connection.privmsg(e.target, stat.strip()[:80])
 
     def parse_url(self, e, msg):
+        count = 0
         for url in  URL_RE.findall(msg):
+            if count > 5:
+                break
             thread = threading.Thread(target=self.__threaded_do_parse, 
                                       args=(e, url))
             thread.start()
+            count += 1
 
     def do_command(self, e, cmd):
         nick = e.source.nick
